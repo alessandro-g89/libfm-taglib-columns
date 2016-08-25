@@ -51,10 +51,45 @@ void get_value(FmFileInfo *fi, GValue *value){
 	}
 };
 
+gint sort(FmFileInfo *fi1, FmFileInfo *fi2){
+	char *filename1, *filename2;
+	int samplingrate1 = 0, samplingrate2 = 0;
+	TagLib_File *TL_file1, *TL_file2;
+	
+	filename1 = fm_path_to_str( fm_file_info_get_path(fi1) );
+	filename2 = fm_path_to_str( fm_file_info_get_path(fi2) );
+	TL_file1 = taglib_file_new( filename1 );
+	TL_file2 = taglib_file_new( filename2 );
+	free( filename1 );
+	free( filename2 );
+	
+	if (TL_file1 != NULL) {
+		if(taglib_file_is_valid(TL_file1)){
+			const TagLib_AudioProperties *TL_props = taglib_file_audioproperties( TL_file1 );
+			samplingrate1 = taglib_audioproperties_samplerate( TL_props );
+			
+			taglib_tag_free_strings();
+			taglib_file_free( TL_file1 );
+		}
+	}
+	
+	if (TL_file2 != NULL) {
+		if(taglib_file_is_valid(TL_file2)){
+			const TagLib_AudioProperties *TL_props = taglib_file_audioproperties( TL_file2 );
+			samplingrate2 = taglib_audioproperties_samplerate( TL_props );
+			
+			taglib_tag_free_strings();
+			taglib_file_free( TL_file2 );
+		}
+	}
+	
+	return samplingrate1 - samplingrate2;
+}
+
 FmFolderModelColumnInit fm_module_init_gtk_folder_col = {
 	"Sampling rate",
 	0, 
 	&get_type,
 	&get_value,
-	NULL
+	&sort
 };

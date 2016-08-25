@@ -50,10 +50,48 @@ void get_value(FmFileInfo *fi, GValue *value){
 	}
 };
 
+gint sort(FmFileInfo *fi1, FmFileInfo *fi2){
+	int result;
+	char *filename1, *filename2;
+	char *genre1=NULL, *genre2=NULL;
+	TagLib_File *TL_file1, *TL_file2;
+	
+	filename1 = fm_path_to_str( fm_file_info_get_path(fi1) );
+	filename2 = fm_path_to_str( fm_file_info_get_path(fi2) );
+	TL_file1 = taglib_file_new( filename1 );
+	TL_file2 = taglib_file_new( filename2 );
+	free( filename1 );
+	free( filename2 );
+	
+	if (TL_file1 != NULL) {
+		if(taglib_file_is_valid(TL_file1)){
+			TagLib_Tag *TL_tag = taglib_file_tag( TL_file1 );
+			genre1 = taglib_tag_genre( TL_tag );
+			taglib_file_free( TL_file1 );
+		}
+	}
+	
+	if (TL_file2 != NULL) {
+		if(taglib_file_is_valid(TL_file2)){
+			TagLib_Tag *TL_tag = taglib_file_tag( TL_file2 );
+			genre2 = taglib_tag_genre( TL_tag );
+			taglib_file_free( TL_file2 );
+		}
+	}
+	
+	result = strcasecmp(genre1, genre2);
+	
+	if (TL_file1 != NULL || TL_file2 != NULL) {
+		taglib_tag_free_strings();
+	}
+	
+	return result;
+}
+
 FmFolderModelColumnInit fm_module_init_gtk_folder_col = {
 	"Genre",
 	0, 
 	&get_type,
 	&get_value,
-	NULL
+	&sort
 };

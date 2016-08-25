@@ -54,10 +54,45 @@ void get_value(FmFileInfo *fi, GValue *value){
 	}
 };
 
+gint sort(FmFileInfo *fi1, FmFileInfo *fi2){
+	char *filename1, *filename2;
+	int track1 = 0, track2 = 0;
+	TagLib_File *TL_file1, *TL_file2;
+	
+	filename1 = fm_path_to_str( fm_file_info_get_path(fi1) );
+	filename2 = fm_path_to_str( fm_file_info_get_path(fi2) );
+	TL_file1 = taglib_file_new( filename1 );
+	TL_file2 = taglib_file_new( filename2 );
+	free( filename1 );
+	free( filename2 );
+	
+	if (TL_file1 != NULL) {
+		if(taglib_file_is_valid(TL_file1)){
+			TagLib_Tag *TL_tag = taglib_file_tag( TL_file1 );
+			track1 = taglib_tag_track( TL_tag );
+			
+			taglib_tag_free_strings();
+			taglib_file_free( TL_file1 );
+		}
+	}
+	
+	if (TL_file2 != NULL) {
+		if(taglib_file_is_valid(TL_file2)){
+			TagLib_Tag *TL_tag = taglib_file_tag( TL_file2 );
+			track2 = taglib_tag_track( TL_tag );
+			
+			taglib_tag_free_strings();
+			taglib_file_free( TL_file2 );
+		}
+	}
+	
+	return track1 - track2;
+}
+
 FmFolderModelColumnInit fm_module_init_gtk_folder_col = {
 	"Track #",
 	0, 
 	&get_type,
 	&get_value,
-	NULL
+	&sort
 };
